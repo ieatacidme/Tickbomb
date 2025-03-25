@@ -2,6 +2,7 @@
     --bg-color: #121212;
     --frame-color: #1E1E1E;
     --text-color: #FFFFFF;
+    --text-muted: #888888;
     --accent-color: #4A90E2;
     --warning-color: #FF5555;
     --success-color: #55FF55;
@@ -138,6 +139,13 @@ h2 {
     width: 0;
     background-color: var(--accent-color);
     transition: width 0.5s;
+}
+
+.sound-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 10px;
+    font-style: italic;
 }
 
 .results-card {
