@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Initialize audio context on user interaction if needed
+        // Initialize audio context on user interaction if needed (for fallback sounds)
         if (!audioContext) {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -154,6 +154,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } else if (audioContext.state === 'suspended') {
             audioContext.resume();
+        }
+        
+        // Initialize speech synthesis on user interaction
+        if ('speechSynthesis' in window) {
+            // A tiny utterance to initialize the speech engine
+            const initUtterance = new SpeechSynthesisUtterance('');
+            speechSynthesis.speak(initUtterance);
+            speechSynthesis.cancel();  // Cancel immediately
         }
         
         alignAlertTime = parseFloat(alignAlertInput.value);
@@ -208,8 +216,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Generate a sound with specified parameters
+    // Play spoken alerts using the Web Speech API
     function playSound(type) {
+        // Check if the Speech Synthesis API is available
+        if (!('speechSynthesis' in window)) {
+            console.warn("Speech synthesis not supported");
+            playFallbackSound(type);
+            return;
+        }
+        
+        // Create utterance
+        const utterance = new SpeechSynthesisUtterance();
+        
+        // Configure speech based on alert type
+        switch(type) {
+            case 'start':
+                utterance.text = "Timer started";
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.8;
+                break;
+            case 'align':
+                utterance.text = "ALIGN";
+                utterance.rate = 1.2;
+                utterance.pitch = 1.1;
+                utterance.volume = 1.0;
+                break;
+            case 'bomb':
+                utterance.text = "LAUNCH";
+                utterance.rate = 1.3;
+                utterance.pitch = 1.2;
+                utterance.volume = 1.0;
+                break;
+            case 'landing':
+                utterance.text = "TARGET LANDING";
+                utterance.rate = 1.2;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                break;
+        }
+        
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        // Speak the utterance
+        speechSynthesis.speak(utterance);
+    }
+    
+    // Fallback sound generator using Web Audio API if speech synthesis is not available
+    function playFallbackSound(type) {
         if (!audioContext) return;
         
         // Resume audio context if it's suspended (browsers require user interaction)
@@ -286,5 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
         statusElement.textContent = 'Ready';
         progressBar.style.width = '0%';
         timerElement.style.color = 'var(--accent-color)';
+        
+        // Cancel any ongoing speech
+        if ('speechSynthesis' in window) {
+            speechSynthesis.cancel();
+        }
     }
 });
