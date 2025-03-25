@@ -1,0 +1,1 @@
+We don't need to create actual audio files here. We will use the Web Audio API to generate sounds directly in the browser.
